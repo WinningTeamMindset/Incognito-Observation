@@ -120,22 +120,25 @@
         }
         .player-roster {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
             gap: 1rem;
         }
         .player-card {
             background-color: #1f2937;
             border-radius: 0.5rem;
-            padding: 0.5rem;
+            padding: 0.75rem;
             text-align: center;
             border: 1px solid #374151;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
         .player-card-image-container {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 0.5rem;
+            width: 100%;
+            padding-top: 100%; /* Aspect ratio 1:1 */
+            position: relative;
             background-color: #374151;
-            border-radius: 50%;
+            border-radius: 0.25rem; /* Squarish corners */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -146,14 +149,33 @@
         .player-card-image-container:hover {
             border-color: #3b82f6;
         }
-        .player-card-image {
+        .player-card-image, .player-card-icon {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-        .player-card-name {
+         .player-card-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .player-name-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #e5e7eb;
+            text-align: center;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            resize: none;
             font-size: 0.875rem;
-            font-weight: 500;
+        }
+        .player-name-input:focus {
+            outline: none;
+            background-color: #374151;
         }
         .toast {
             position: fixed;
@@ -193,7 +215,7 @@
 
         <section id="player-roster-section" class="card">
             <h2 class="text-xl font-bold mb-4">Player Roster</h2>
-            <p class="text-sm text-gray-400 mb-4">Click a player's circle to add their photo for easier visualization. Images are saved in your browser's local storage.</p>
+            <p class="text-sm text-gray-400 mb-4">Click a player's square to add their photo. Type their name below. Data is saved in your browser's local storage.</p>
             <div id="player-roster-grid" class="player-roster">
                 </div>
         </section>
@@ -217,7 +239,7 @@
         appId = typeof __app_id !== 'undefined' ? __app_id : 'default-incognito-app';
 
         // --- PLAYER & OBSERVATION DATA ---
-        const players = Array.from({ length: 24 }, (_, i) => `Player ${i + 1}`);
+        const playerCount = 31; // Set the number of players
 
         const observationPlan = [
             {
@@ -262,17 +284,23 @@
 
         function renderPlayerRoster() {
             const grid = document.getElementById('player-roster-grid');
-            grid.innerHTML = players.map((player, index) => `
-                <div class="player-card">
-                    <div class="player-card-image-container" data-player-index="${index}">
-                        <img id="player-img-${index}" class="player-card-image" src="" alt="Player photo">
-                        <i class="fas fa-camera text-2xl text-gray-500"></i>
+            let rosterHtml = '';
+            for(let i = 0; i < playerCount; i++) {
+                rosterHtml += `
+                    <div class="player-card">
+                        <div class="player-card-image-container" data-player-index="${i}">
+                            <img id="player-img-${i}" class="player-card-image" src="" alt="Player photo" style="display: none;">
+                            <div id="player-icon-${i}" class="player-card-icon">
+                                <i class="fas fa-camera text-2xl text-gray-500"></i>
+                            </div>
+                        </div>
+                        <textarea id="player-name-${i}" class="player-name-input" rows="2" placeholder="Enter Name..." data-player-index="${i}"></textarea>
+                        <input type="file" id="player-input-${i}" class="hidden" accept="image/*" data-player-index="${i}">
                     </div>
-                    <p class="player-card-name">${player}</p>
-                    <input type="file" id="player-input-${index}" class="hidden" accept="image/*" data-player-index="${index}">
-                </div>
-            `).join('');
-            loadPlayerImagesFromStorage();
+                `;
+            }
+            grid.innerHTML = rosterHtml;
+            loadRosterFromStorage();
         }
 
         function renderObservationPhases() {
@@ -352,28 +380,39 @@
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const imgElement = document.getElementById(`player-img-${index}`);
-                    const icon = imgElement.nextElementSibling;
+                    const icon = document.getElementById(`player-icon-${index}`);
                     imgElement.src = e.target.result;
                     imgElement.style.display = 'block';
                     icon.style.display = 'none';
-                    // Save to localStorage
                     localStorage.setItem(`player_image_${index}`, e.target.result);
                 }
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        function loadPlayerImagesFromStorage() {
-            players.forEach((_, index) => {
-                const imageDataUrl = localStorage.getItem(`player_image_${index}`);
+        function handleNameInput(event) {
+            const textarea = event.target;
+            const index = textarea.dataset.playerIndex;
+            localStorage.setItem(`player_name_${index}`, textarea.value);
+        }
+
+        function loadRosterFromStorage() {
+            for(let i = 0; i < playerCount; i++) {
+                // Load Images
+                const imageDataUrl = localStorage.getItem(`player_image_${i}`);
                 if (imageDataUrl) {
-                    const imgElement = document.getElementById(`player-img-${index}`);
-                    const icon = imgElement.nextElementSibling;
+                    const imgElement = document.getElementById(`player-img-${i}`);
+                    const icon = document.getElementById(`player-icon-${i}`);
                     imgElement.src = imageDataUrl;
                     imgElement.style.display = 'block';
                     icon.style.display = 'none';
                 }
-            });
+                // Load Names
+                const name = localStorage.getItem(`player_name_${i}`);
+                if (name) {
+                    document.getElementById(`player-name-${i}`).value = name;
+                }
+            }
         }
 
         async function handleSaveAsPdf() {
@@ -402,7 +441,6 @@
                 const ratio = canvasWidth / canvasHeight;
                 const widthInPdf = pdfWidth;
                 const heightInPdf = widthInPdf / ratio;
-
                 let heightLeft = heightInPdf;
                 let position = 0;
 
@@ -483,12 +521,12 @@
                     if (user) {
                         userId = user.uid;
                         authStatusDiv.innerHTML = `Connected`;
-                        authStatusDiv.className = "mt-4 text-sm text-green-400";
+                        authStatusDiv.className = "text-sm text-green-400";
                         listenForObservations();
                     } else {
                         userId = null;
-                        authStatusDiv.textContent = "Not connected";
-                        authStatusDiv.className = "mt-4 text-sm text-red-400";
+                        authStatusdthStatusDiv.textContent = "Not connected";
+                        authStatusDiv.className = "text-sm text-red-400";
                     }
                 });
                 await (typeof __initial_auth_token !== 'undefined' ? signInWithCustomToken(auth, __initial_auth_token) : signInAnonymously(auth));
@@ -517,7 +555,6 @@
             renderObservationPhases();
             initializeFirebase();
 
-            // Event Delegation for the whole app
             const mainContainer = document.querySelector('.main-container');
             mainContainer.addEventListener('click', (e) => {
                 if (e.target.closest('.accordion-header')) {
@@ -534,6 +571,11 @@
             mainContainer.addEventListener('change', (e) => {
                 if (e.target.matches('input[type="file"]')) {
                     handleImageUpload(e);
+                }
+            });
+             mainContainer.addEventListener('input', (e) => {
+                if (e.target.matches('.player-name-input')) {
+                    handleNameInput(e);
                 }
             });
             mainContainer.addEventListener('submit', (e) => {
