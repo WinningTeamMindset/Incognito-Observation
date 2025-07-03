@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incognito Observation Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Dark background */
+            color: #e5e7eb;
+        }
+        .card {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .accordion-header {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: #374151;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        .accordion-header:hover {
+            background-color: #4b5563;
+        }
+        .accordion-content {
+            display: none;
+            padding-top: 1.5rem;
+        }
+        .accordion-icon {
+            transition: transform 0.3s ease;
+        }
+        .open .accordion-icon {
+            transform: rotate(180deg);
+        }
+        .open .accordion-content {
+            display: block;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .input-field {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            color: #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px #1e40af;
+        }
+        .player-select-container {
+            position: relative;
+        }
+        .player-select-dropdown {
+            position: absolute;
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 0.5rem;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none; /* Hidden by default */
+        }
+        .player-select-dropdown label {
+            display: block;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+        .player-select-dropdown label:hover {
+            background-color: #4b5563;
+        }
+        .selected-players-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #22c55e;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            visibility: hidden;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, -10px);
+            visibility: visible;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-2xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white">Incognito Observation Tool</h1>
+            <p class="text-gray-400 mt-2">Log behavioral data quickly and efficiently.</p>
+            <div id="auth-status" class="mt-4 text-sm text-gray-500">Connecting...</div>
+        </header>
+
+        <main id="observation-phases">
+            <!-- Observation phases will be dynamically inserted here -->
+        </main>
+    </div>
+
+    <div id="toast-notification" class="toast">Observation Saved!</div>
+
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, onSnapshot, doc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- GLOBAL STATE & CONFIG ---
+        let db, auth, userId, appId;
+        
+        // Use provided Firebase config and App ID, with fallbacks for local testing
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        appId = typeof __app_id !== 'undefined' ? __app_id : 'default-incognito-app';
+
+        // --- PLAYER & OBSERVATION DATA ---
+        const players = Array.from({ length: 31 }, (_, i) => `Player ${i + 1}`);
+
+        const observationPlan = [
+            {
+                phase: "The Ghost Phase (Days 1-2)",
+                icon: "fa-ghost",
+                parameters: [
+                    {
+                        id: "social-map",
+                        title: "The Social Map (Breakfast/Locker Room)",
+                        question: "Identify Key Nodes:",
+                        type: "checkbox",
+                        options: ["The Social Hub(s)", "The Main Isolates(s)", "The Dominant Clique(s)"]
+                    },
+                    {
+                        id: "emotional-barometer",
+                        title: "The Emotional Barometer",
+                        question: "Whose mood dictates the room's energy?",
+                        type: "radio",
+                        options: ["The Loud/Joking Leader", "The Quiet/Intense Leader", "The Complainer/Negative Influence", "No single dominant barometer"]
+                    },
+                    {
+                        id: "informal-leadership",
+                        title: "Informal Leadership & Accountability",
+                        question: "Who demonstrates ownership without being asked?",
+                        type: "checkbox",
+                        options: ["Initiates cleanup", "Answers a coach's question", "Reminds others of a time/task"]
+                    },
+                    {
+                        id: "locker-discipline",
+                        title: "Locker Discipline",
+                        question: "Observe the general state of personal areas:",
+                        type: "radio",
+                        options: ["High Discipline", "Mixed Discipline", "Low Discipline"]
+                    }
+                ]
+            },
+            {
+                phase: "The Humanization Phase (Days 3-4)",
+                icon: "fa-user-check",
+                parameters: [
+                    {
+                        id: "interaction-protocol",
+                        title: "Interaction Protocol",
+                        question: "Observed Reaction to brief, polite interaction:",
+                        type: "radio",
+                        options: ["Positive/Neutral", "Indifferent", "Negative"]
+                    },
+                    {
+                        id: "linguistic-humor",
+                        title: "Linguistic Patterns (Humor)",
+                        question: "What is the dominant type of humor?",
+                        type: "radio",
+                        options: ["Inclusive & light-hearted", "Sarcastic & cynical", "Targeted (at players/staff)"]
+                    },
+                    {
+                        id: "linguistic-mistake",
+                        title: "Linguistic Patterns (Mistakes)",
+                        question: "What is the dominant reaction to a mistake in training?",
+                        type: "radio",
+                        options: ["Accountability-focused", "Blame-focused", "Silent/Internalized"]
+                    }
+                ]
+            },
+            {
+                phase: "The Clincher Phase (Day 5: Match Day)",
+                icon: "fa-trophy",
+                parameters: [
+                    {
+                        id: "pre-match-state",
+                        title: "Pre-Match State (Changing Room)",
+                        question: "Identify the dominant pre-game emotional states:",
+                        type: "checkbox",
+                        options: ["Optimal Fighter(s)", "Pre-Start Fever(s)", "Pre-Start Apathy(s)"]
+                    },
+                    {
+                        id: "post-match-reaction",
+                        title: "Post-Match Reaction (Immediate)",
+                        question: "Observe the immediate reaction to the result:",
+                        type: "radio",
+                        options: ["Balanced", "Highly Emotional", "Destructive"]
+                    },
+                    {
+                        id: "post-match-social",
+                        title: "Post-Match Social Dynamics",
+                        question: "How does the group process the result together?",
+                        type: "radio",
+                        options: ["Supportive", "Fragmented", "Avoidant"]
+                    }
+                ]
+            }
+        ];
+
+        // --- UI RENDERING ---
+
+        function renderApp() {
+            const container = document.getElementById('observation-phases');
+            container.innerHTML = observationPlan.map(phaseData => `
+                <div class="mb-4">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <h2 class="text-xl font-semibold flex items-center">
+                            <i class="fas ${phaseData.icon} mr-3 w-6 text-center text-blue-400"></i>
+                            ${phaseData.phase}
+                        </h2>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        ${phaseData.parameters.map(param => renderParameterCard(param, phaseData.phase)).join('')}
+                    </div>
+                </div>
+            `).join('');
+            
+            // Attach event listeners after rendering
+            attachPlayerSelectListeners();
+        }
+
+        function renderParameterCard(param, phaseName) {
+            const formId = `form-${param.id}`;
+            return `
+                <div class="card" id="card-${param.id}">
+                    <form id="${formId}" data-phase="${phaseName}" data-parameter="${param.title}">
+                        <h3 class="text-lg font-bold text-gray-200 mb-4">${param.title}</h3>
+                        <p class="text-gray-400 mb-4">${param.question}</p>
+                        
+                        <div class="space-y-3 mb-6">
+                            ${param.options.map(opt => `
+                                <label class="flex items-center p-3 bg-gray-700/50 rounded-lg hover:bg-gray-600/50 cursor-pointer">
+                                    <input type="${param.type}" name="selection" value="${opt}" class="mr-3 h-5 w-5 ${param.type === 'radio' ? 'rounded-full' : 'rounded'} text-blue-500 bg-gray-800 border-gray-600 focus:ring-blue-600">
+                                    <span>${opt}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block font-semibold mb-2">Tag Players (Optional)</label>
+                            <div class="player-select-container">
+                                <div class="input-field player-select-toggle flex items-center justify-between cursor-pointer">
+                                    <span>Select Players...</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="player-select-dropdown">
+                                    ${players.map(p => `
+                                        <label>
+                                            <input type="checkbox" class="player-checkbox mr-2" value="${p}">
+                                            ${p}
+                                        </label>
+                                    `).join('')}
+                                </div>
+                                <div class="selected-players-display mt-2"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label for="comment-${param.id}" class="block font-semibold mb-2">Analyst Comments</label>
+                            <textarea id="comment-${param.id}" name="comment" rows="3" class="input-field" placeholder="Add jersey #, initials, key identifiers..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-full">
+                            <i class="fas fa-save mr-2"></i>Save Observation
+                        </button>
+                    </form>
+                    <div id="log-${param.id}" class="mt-6"></div>
+                </div>
+            `;
+        }
+        
+        function renderSavedObservation(obs) {
+            const logContainer = document.getElementById(`log-${obs.parameterId}`);
+            if (!logContainer) return;
+
+            // Simple check to avoid duplicate rendering from snapshot updates
+            if (document.getElementById(`obs-${obs.id}`)) return;
+            
+            const obsElement = document.createElement('div');
+            obsElement.id = `obs-${obs.id}`;
+            obsElement.className = 'p-3 bg-gray-800 rounded-lg mb-2 border-l-4 border-blue-500';
+            
+            const timestamp = obs.timestamp?.toDate ? obs.timestamp.toDate().toLocaleString() : 'Just now';
+
+            obsElement.innerHTML = `
+                <p class="font-semibold text-gray-300">Selection: <span class="font-normal">${Array.isArray(obs.selection) ? obs.selection.join(', ') : obs.selection}</span></p>
+                ${obs.players.length > 0 ? `<p class="font-semibold text-gray-300">Players: <span class="font-normal">${obs.players.join(', ')}</span></p>` : ''}
+                ${obs.comment ? `<p class="font-semibold text-gray-300 mt-1">Comment: <span class="font-normal italic">"${obs.comment}"</span></p>` : ''}
+                <p class="text-xs text-gray-500 text-right mt-2">${timestamp}</p>
+            `;
+            logContainer.prepend(obsElement); // Prepend to show newest first
+        }
+
+
+        // --- EVENT HANDLERS & LOGIC ---
+
+        window.toggleAccordion = function(headerElement) {
+            headerElement.parentElement.classList.toggle('open');
+        }
+
+        function attachPlayerSelectListeners() {
+            document.querySelectorAll('.player-select-toggle').forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const dropdown = toggle.nextElementSibling;
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                });
+            });
+
+            document.querySelectorAll('.player-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const container = e.target.closest('.player-select-container');
+                    updateSelectedPlayersDisplay(container);
+                });
+            });
+        }
+        
+        function updateSelectedPlayersDisplay(container) {
+            const display = container.querySelector('.selected-players-display');
+            const checkboxes = container.querySelectorAll('.player-checkbox:checked');
+            const selectedPlayers = Array.from(checkboxes).map(cb => cb.value);
+            
+            display.innerHTML = selectedPlayers.map(p => `<span class="selected-players-badge">${p}</span>`).join('');
+        }
+        
+        function showToast() {
+            const toast = document.getElementById('toast-notification');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            if (!userId) {
+                console.error("User not authenticated. Cannot save observation.");
+                alert("Error: Not connected. Please wait and try again.");
+                return;
+            }
+
+            const form = event.target;
+            const phase = form.dataset.phase;
+            const parameter = form.dataset.parameter;
+            const parameterId = form.id.replace('form-', '');
+            
+            const formData = new FormData(form);
+            const selections = formData.getAll('selection');
+            const comment = formData.get('comment');
+
+            const playerCheckboxes = form.querySelectorAll('.player-checkbox:checked');
+            const players = Array.from(playerCheckboxes).map(cb => cb.value);
+
+            if (selections.length === 0) {
+                alert("Please make at least one selection.");
+                return;
+            }
+
+            const observationData = {
+                userId,
+                phase,
+                parameter,
+                parameterId,
+                selection: selections.length === 1 ? selections[0] : selections,
+                players,
+                comment,
+                timestamp: new Date()
+            };
+
+            try {
+                const collectionPath = `artifacts/${appId}/users/${userId}/observations`;
+                await addDoc(collection(db, collectionPath), observationData);
+                showToast();
+                form.reset();
+                updateSelectedPlayersDisplay(form.querySelector('.player-select-container'));
+                // Close player dropdown after submission
+                form.querySelector('.player-select-dropdown').style.display = 'none';
+
+            } catch (error) {
+                console.error("Error saving observation: ", error);
+                alert("Failed to save observation. See console for details.");
+            }
+        }
+
+        // --- FIREBASE INITIALIZATION & AUTH ---
+        
+        async function initializeFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setLogLevel('debug'); // For more detailed console logs from Firestore
+
+                onAuthStateChanged(auth, async (user) => {
+                    const authStatusDiv = document.getElementById('auth-status');
+                    if (user) {
+                        userId = user.uid;
+                        authStatusDiv.innerHTML = `Connected. User ID: <span class="font-mono text-gray-400">${userId}</span>`;
+                        authStatusDiv.className = "mt-4 text-sm text-green-400";
+                        // User is signed in, now we can listen for data.
+                        listenForObservations();
+                    } else {
+                        // User is signed out.
+                        userId = null;
+                        authStatusDiv.textContent = "Not connected. Please refresh.";
+                        authStatusDiv.className = "mt-4 text-sm text-red-400";
+                    }
+                });
+
+                // Sign in logic
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                document.getElementById('auth-status').textContent = "Connection failed. Check console.";
+            }
+        }
+
+        function listenForObservations() {
+            if (!userId) return;
+            const collectionPath = `artifacts/${appId}/users/${userId}/observations`;
+            const q = query(collection(db, collectionPath));
+
+            onSnapshot(q, (querySnapshot) => {
+                querySnapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        const obsData = { id: change.doc.id, ...change.doc.data() };
+                        renderSavedObservation(obsData);
+                    }
+                });
+            }, (error) => {
+                console.error("Error listening to observations: ", error);
+            });
+        }
+        
+        // --- APP START ---
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            renderApp();
+            initializeFirebase();
+
+            // Use event delegation for form submissions
+            document.getElementById('observation-phases').addEventListener('submit', handleFormSubmit);
+        });
+
+    </script>
+</body>
+</html>
