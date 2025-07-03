@@ -261,6 +261,14 @@
                 ]
             },
             {
+                phase: "The Clincher Phase (Day 5: Match Day)",
+                icon: "fa-trophy",
+                parameters: [
+                    { id: "pre-match-state", title: "Pre-Match State", question: "Identify dominant pre-game emotional states:", type: "checkbox", options: ["Optimal Fighter(s)", "Pre-Start Fever(s)", "Pre-Start Apathy(s)"] },
+                    { id: "post-match-reaction", title: "Post-Match Reaction", question: "Observe the immediate reaction to the result:", type: "radio", options: ["Balanced", "Highly Emotional", "Destructive"] },
+                ]
+            },
+            {
                 phase: "Behavioural Profile",
                 icon: "fa-comments",
                 parameters: [
@@ -268,14 +276,6 @@
                     { id: "motivation-source", title: "Motivation Source", question: "What drives their actions?", type: "radio", options: ["Moving Toward a Goal (Focus on winning, gaining)", "Moving Away From Problems (Focus on avoiding loss)"] },
                     { id: "convincer-strategy", title: "How They Are Convinced", question: "What does it take to convince them?", type: "radio", options: ["By Seeing It (Needs visual proof)", "By Hearing It (Needs to be told)", "By Doing It (Needs to try it themselves)", "By Reading It (Needs data or a report)"] },
                     { id: "language-habits", title: "Common Language Habits", question: "What common speaking habits do you notice?", type: "checkbox", options: ["Using broad words like 'always' or 'never'", "Leaving out details (e.g., 'They don't get it')", "Making assumptions (e.g., 'He's mad because...')"] }
-                ]
-            },
-            {
-                phase: "The Clincher Phase (Day 5: Match Day)",
-                icon: "fa-trophy",
-                parameters: [
-                    { id: "pre-match-state", title: "Pre-Match State", question: "Identify dominant pre-game emotional states:", type: "checkbox", options: ["Optimal Fighter(s)", "Pre-Start Fever(s)", "Pre-Start Apathy(s)"] },
-                    { id: "post-match-reaction", title: "Post-Match Reaction", question: "Observe the immediate reaction to the result:", type: "radio", options: ["Balanced", "Highly Emotional", "Destructive"] },
                 ]
             }
         ];
@@ -525,7 +525,7 @@
                         listenForObservations();
                     } else {
                         userId = null;
-                        authStatusdthStatusDiv.textContent = "Not connected";
+                        authStatusDiv.textContent = "Not connected";
                         authStatusDiv.className = "text-sm text-red-400";
                     }
                 });
