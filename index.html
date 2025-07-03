@@ -75,12 +75,40 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px #1e40af;
         }
+        .option-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background-color: #37415140;
+            border-radius: 0.5rem;
+        }
+        .option-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            flex-grow: 1;
+            padding: 0.5rem;
+        }
         .player-select-container {
             position: relative;
+            width: 180px; /* Adjust width as needed */
+            flex-shrink: 0;
+        }
+        .player-select-toggle {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
         }
         .player-select-dropdown {
             position: absolute;
-            background-color: #374151;
+            background-color: #1f2937;
             border: 1px solid #4b5563;
             border-radius: 0.5rem;
             width: 100%;
@@ -88,25 +116,24 @@
             overflow-y: auto;
             z-index: 10;
             display: none; /* Hidden by default */
+            right: 0;
         }
         .player-select-dropdown label {
             display: block;
             padding: 0.5rem 1rem;
             cursor: pointer;
+            font-size: 0.875rem;
         }
         .player-select-dropdown label:hover {
             background-color: #4b5563;
         }
-        .selected-players-badge {
-            display: inline-flex;
-            align-items: center;
-            background-color: #3b82f6;
-            color: white;
+        .selected-players-display {
+            font-size: 0.75rem;
+            color: #9ca3af;
             padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .toast {
             position: fixed;
@@ -132,7 +159,7 @@
 </head>
 <body class="p-4 md:p-8">
 
-    <div class="max-w-2xl mx-auto">
+    <div class="max-w-4xl mx-auto">
         <header class="text-center mb-8">
             <h1 class="text-3xl font-bold text-white">Incognito Observation Tool</h1>
             <p class="text-gray-400 mt-2">Log behavioral data quickly and efficiently.</p>
@@ -140,8 +167,7 @@
         </header>
 
         <main id="observation-phases">
-            <!-- Observation phases will be dynamically inserted here -->
-        </main>
+            </main>
     </div>
 
     <div id="toast-notification" class="toast">Observation Saved!</div>
@@ -155,7 +181,6 @@
         // --- GLOBAL STATE & CONFIG ---
         let db, auth, userId, appId;
         
-        // Use provided Firebase config and App ID, with fallbacks for local testing
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         appId = typeof __app_id !== 'undefined' ? __app_id : 'default-incognito-app';
 
@@ -259,7 +284,7 @@
             const container = document.getElementById('observation-phases');
             container.innerHTML = observationPlan.map(phaseData => `
                 <div class="mb-4">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <div class="accordion-header">
                         <h2 class="text-xl font-semibold flex items-center">
                             <i class="fas ${phaseData.icon} mr-3 w-6 text-center text-blue-400"></i>
                             ${phaseData.phase}
@@ -271,9 +296,30 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        function renderPlayerSelectForOption(paramId, optionValue) {
+            // Sanitize optionValue to create a valid data-attribute
+            const cleanOption = optionValue.replace(/[^a-zA-Z0-9]/g, '');
+            const uniqueId = `${paramId}-${cleanOption}`;
             
-            // Attach event listeners after rendering
-            attachPlayerSelectListeners();
+            return `
+                <div class="player-select-container" data-parent-id="${uniqueId}">
+                    <div class="player-select-toggle">
+                        <span>Tag Players</span>
+                        <i class="fas fa-plus text-xs"></i>
+                    </div>
+                    <div class="player-select-dropdown">
+                        ${players.map(p => `
+                            <label>
+                                <input type="checkbox" class="player-checkbox mr-2" value="${p}">
+                                ${p}
+                            </label>
+                        `).join('')}
+                    </div>
+                    <div class="selected-players-display"></div>
+                </div>
+            `;
         }
 
         function renderParameterCard(param, phaseName) {
@@ -286,35 +332,19 @@
                         
                         <div class="space-y-3 mb-6">
                             ${param.options.map(opt => `
-                                <label class="flex items-center p-3 bg-gray-700/50 rounded-lg hover:bg-gray-600/50 cursor-pointer">
-                                    <input type="${param.type}" name="selection" value="${opt}" class="mr-3 h-5 w-5 ${param.type === 'radio' ? 'rounded-full' : 'rounded'} text-blue-500 bg-gray-800 border-gray-600 focus:ring-blue-600">
-                                    <span>${opt}</span>
-                                </label>
+                                <div class="option-container">
+                                    <label class="option-label">
+                                        <input type="${param.type}" name="selection" value="${opt}" class="mr-3 h-5 w-5 ${param.type === 'radio' ? 'rounded-full' : 'rounded'} text-blue-500 bg-gray-800 border-gray-600 focus:ring-blue-600">
+                                        <span>${opt}</span>
+                                    </label>
+                                    ${renderPlayerSelectForOption(param.id, opt)}
+                                </div>
                             `).join('')}
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block font-semibold mb-2">Tag Players (Optional)</label>
-                            <div class="player-select-container">
-                                <div class="input-field player-select-toggle flex items-center justify-between cursor-pointer">
-                                    <span>Select Players...</span>
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                                <div class="player-select-dropdown">
-                                    ${players.map(p => `
-                                        <label>
-                                            <input type="checkbox" class="player-checkbox mr-2" value="${p}">
-                                            ${p}
-                                        </label>
-                                    `).join('')}
-                                </div>
-                                <div class="selected-players-display mt-2"></div>
-                            </div>
                         </div>
 
                         <div class="mb-6">
                             <label for="comment-${param.id}" class="block font-semibold mb-2">Analyst Comments</label>
-                            <textarea id="comment-${param.id}" name="comment" rows="3" class="input-field" placeholder="Add jersey #, initials, key identifiers..."></textarea>
+                            <textarea id="comment-${param.id}" name="comment" rows="3" class="input-field" placeholder="Add general comments, jersey #, key identifiers..."></textarea>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-full">
@@ -330,53 +360,92 @@
             const logContainer = document.getElementById(`log-${obs.parameterId}`);
             if (!logContainer) return;
 
-            // Simple check to avoid duplicate rendering from snapshot updates
             if (document.getElementById(`obs-${obs.id}`)) return;
             
             const obsElement = document.createElement('div');
             obsElement.id = `obs-${obs.id}`;
-            obsElement.className = 'p-3 bg-gray-800 rounded-lg mb-2 border-l-4 border-blue-500';
+            obsElement.className = 'p-3 bg-gray-800 rounded-lg mb-2 border-l-4 border-blue-500 text-sm';
             
             const timestamp = obs.timestamp?.toDate ? obs.timestamp.toDate().toLocaleString() : 'Just now';
 
+            // New rendering logic for the granular data structure
+            const selectionsHtml = obs.selections.map(sel => {
+                const playersHtml = sel.players.length > 0 ? ` <span class="font-normal text-blue-300">- [${sel.players.join(', ')}]</span>` : '';
+                return `<li><span class="font-semibold">${sel.value}</span>${playersHtml}</li>`;
+            }).join('');
+
             obsElement.innerHTML = `
-                <p class="font-semibold text-gray-300">Selection: <span class="font-normal">${Array.isArray(obs.selection) ? obs.selection.join(', ') : obs.selection}</span></p>
-                ${obs.players.length > 0 ? `<p class="font-semibold text-gray-300">Players: <span class="font-normal">${obs.players.join(', ')}</span></p>` : ''}
-                ${obs.comment ? `<p class="font-semibold text-gray-300 mt-1">Comment: <span class="font-normal italic">"${obs.comment}"</span></p>` : ''}
+                <ul class="list-disc list-inside mb-2">
+                    ${selectionsHtml}
+                </ul>
+                ${obs.comment ? `<p class="font-semibold text-gray-300 mt-2">Comment: <span class="font-normal italic">"${obs.comment}"</span></p>` : ''}
                 <p class="text-xs text-gray-500 text-right mt-2">${timestamp}</p>
             `;
-            logContainer.prepend(obsElement); // Prepend to show newest first
+            logContainer.prepend(obsElement);
         }
-
 
         // --- EVENT HANDLERS & LOGIC ---
 
-        window.toggleAccordion = function(headerElement) {
+        function toggleAccordion(headerElement) {
             headerElement.parentElement.classList.toggle('open');
         }
 
-        function attachPlayerSelectListeners() {
-            document.querySelectorAll('.player-select-toggle').forEach(toggle => {
-                toggle.addEventListener('click', () => {
-                    const dropdown = toggle.nextElementSibling;
-                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-                });
+        function attachAllEventListeners() {
+            const mainContainer = document.getElementById('observation-phases');
+
+            // Accordions
+            mainContainer.querySelectorAll('.accordion-header').forEach(header => {
+                header.addEventListener('click', () => toggleAccordion(header));
             });
 
-            document.querySelectorAll('.player-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', (e) => {
+            // Player Select Dropdowns
+            mainContainer.addEventListener('click', (e) => {
+                if (e.target.closest('.player-select-toggle')) {
+                    const toggle = e.target.closest('.player-select-toggle');
+                    const dropdown = toggle.nextElementSibling;
+                    // Close all other dropdowns
+                    document.querySelectorAll('.player-select-dropdown').forEach(d => {
+                        if (d !== dropdown) d.style.display = 'none';
+                    });
+                    // Toggle current dropdown
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                }
+            });
+            
+            // Clicking outside closes dropdowns
+            window.addEventListener('click', (e) => {
+                if (!e.target.closest('.player-select-container')) {
+                    document.querySelectorAll('.player-select-dropdown').forEach(dropdown => {
+                        dropdown.style.display = 'none';
+                    });
+                }
+            });
+
+            // Player Checkbox changes
+            mainContainer.addEventListener('change', (e) => {
+                if (e.target.classList.contains('player-checkbox')) {
                     const container = e.target.closest('.player-select-container');
                     updateSelectedPlayersDisplay(container);
-                });
+                }
             });
+
+            // Form Submissions (Event Delegation)
+            mainContainer.addEventListener('submit', handleFormSubmit);
         }
         
         function updateSelectedPlayersDisplay(container) {
             const display = container.querySelector('.selected-players-display');
+            const toggleText = container.querySelector('.player-select-toggle span');
             const checkboxes = container.querySelectorAll('.player-checkbox:checked');
             const selectedPlayers = Array.from(checkboxes).map(cb => cb.value);
             
-            display.innerHTML = selectedPlayers.map(p => `<span class="selected-players-badge">${p}</span>`).join('');
+            if (selectedPlayers.length > 0) {
+                display.textContent = selectedPlayers.join(', ');
+                toggleText.textContent = `Player(s) Tagged`;
+            } else {
+                display.textContent = '';
+                toggleText.textContent = 'Tag Players';
+            }
         }
         
         function showToast() {
@@ -399,26 +468,33 @@
             const phase = form.dataset.phase;
             const parameter = form.dataset.parameter;
             const parameterId = form.id.replace('form-', '');
+            const comment = form.querySelector(`textarea[name="comment"]`).value;
             
-            const formData = new FormData(form);
-            const selections = formData.getAll('selection');
-            const comment = formData.get('comment');
+            const checkedInputs = form.querySelectorAll('input[name="selection"]:checked');
 
-            const playerCheckboxes = form.querySelectorAll('.player-checkbox:checked');
-            const players = Array.from(playerCheckboxes).map(cb => cb.value);
-
-            if (selections.length === 0) {
+            if (checkedInputs.length === 0) {
                 alert("Please make at least one selection.");
                 return;
             }
+
+            const selectionsData = Array.from(checkedInputs).map(input => {
+                const optionContainer = input.closest('.option-container');
+                const playerSelectContainer = optionContainer.querySelector('.player-select-container');
+                const selectedPlayerCheckboxes = playerSelectContainer.querySelectorAll('.player-checkbox:checked');
+                const players = Array.from(selectedPlayerCheckboxes).map(cb => cb.value);
+
+                return {
+                    value: input.value,
+                    players: players
+                };
+            });
 
             const observationData = {
                 userId,
                 phase,
                 parameter,
                 parameterId,
-                selection: selections.length === 1 ? selections[0] : selections,
-                players,
+                selections: selectionsData,
                 comment,
                 timestamp: new Date()
             };
@@ -427,11 +503,15 @@
                 const collectionPath = `artifacts/${appId}/users/${userId}/observations`;
                 await addDoc(collection(db, collectionPath), observationData);
                 showToast();
+                
+                // Reset form and all player selects within it
                 form.reset();
-                updateSelectedPlayersDisplay(form.querySelector('.player-select-container'));
-                // Close player dropdown after submission
-                form.querySelector('.player-select-dropdown').style.display = 'none';
-
+                form.querySelectorAll('.player-select-container').forEach(container => {
+                    updateSelectedPlayersDisplay(container);
+                    // Close dropdown after submission
+                    container.querySelector('.player-select-dropdown').style.display = 'none';
+                });
+                
             } catch (error) {
                 console.error("Error saving observation: ", error);
                 alert("Failed to save observation. See console for details.");
@@ -445,7 +525,7 @@
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-                setLogLevel('debug'); // For more detailed console logs from Firestore
+                // setLogLevel('debug'); // Uncomment for detailed logs
 
                 onAuthStateChanged(auth, async (user) => {
                     const authStatusDiv = document.getElementById('auth-status');
@@ -453,17 +533,14 @@
                         userId = user.uid;
                         authStatusDiv.innerHTML = `Connected. User ID: <span class="font-mono text-gray-400">${userId}</span>`;
                         authStatusDiv.className = "mt-4 text-sm text-green-400";
-                        // User is signed in, now we can listen for data.
                         listenForObservations();
                     } else {
-                        // User is signed out.
                         userId = null;
                         authStatusDiv.textContent = "Not connected. Please refresh.";
                         authStatusDiv.className = "mt-4 text-sm text-red-400";
                     }
                 });
 
-                // Sign in logic
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
@@ -497,10 +574,8 @@
         
         document.addEventListener('DOMContentLoaded', () => {
             renderApp();
+            attachAllEventListeners();
             initializeFirebase();
-
-            // Use event delegation for form submissions
-            document.getElementById('observation-phases').addEventListener('submit', handleFormSubmit);
         });
 
     </script>
