@@ -16,7 +16,7 @@
             color: #e5e7eb;
         }
         .main-container {
-            max-width: 56rem; /* Increased width */
+            max-width: 56rem;
             margin-left: auto;
             margin-right: auto;
         }
@@ -45,15 +45,8 @@
             display: none;
             padding-top: 1.5rem;
         }
-        .accordion-icon {
-            transition: transform 0.3s ease;
-        }
-        .open .accordion-icon {
-            transform: rotate(180deg);
-        }
-        .open .accordion-content {
-            display: block;
-        }
+        .open .accordion-content { display: block; }
+        .open .accordion-icon { transform: rotate(180deg); }
         .btn {
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
@@ -62,20 +55,24 @@
             transition: all 0.2s ease;
             cursor: pointer;
         }
-        .btn-primary {
-            background-color: #3b82f6;
-            color: white;
+        .btn-primary { background-color: #3b82f6; color: white; }
+        .btn-primary:hover { background-color: #2563eb; }
+        .btn-secondary { background-color: #6b7280; color: white; }
+        .btn-secondary:hover { background-color: #4b5563; }
+        .btn-add {
+            font-size: 0.875rem;
+            background-color: #374151;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
         }
-        .btn-primary:hover {
-            background-color: #2563eb;
+        .btn-add:hover { background-color: #4b5563; }
+        .btn-remove {
+            background: transparent;
+            color: #9ca3af;
+            border: none;
+            cursor: pointer;
         }
-        .btn-secondary {
-            background-color: #6b7280;
-            color: white;
-        }
-        .btn-secondary:hover {
-            background-color: #4b5563;
-        }
+        .btn-remove:hover { color: #ef4444; }
         .input-field {
             background-color: #374151;
             border: 1px solid #4b5563;
@@ -84,45 +81,37 @@
             padding: 0.75rem 1rem;
             width: 100%;
         }
-        .input-field:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px #1e40af;
-        }
-        .option-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem;
+        .input-field:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px #1e40af; }
+        
+        /* New Player Tagging Styles */
+        .option-block {
+            padding: 0.75rem;
             background-color: #37415140;
             border-radius: 0.5rem;
-            gap: 1rem;
         }
-        .option-label {
+        .option-label { display: flex; align-items: center; cursor: pointer; }
+        .player-tagging-area {
+            margin-top: 0.75rem;
+            padding-left: 2.25rem;
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
-            cursor: pointer;
-            flex-grow: 1;
+            gap: 0.75rem;
         }
-        .player-tag-input {
-            background-color: #374151;
+        .player-input-group { display: flex; align-items: center; gap: 0.5rem; }
+        .dynamic-player-input {
+            background-color: #1f2937;
             border: 1px solid #4b5563;
             color: #e5e7eb;
             border-radius: 0.5rem;
             padding: 0.5rem 0.75rem;
             font-size: 0.875rem;
             width: 180px;
-            flex-shrink: 0;
         }
-         .player-tag-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-        .player-roster {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 1rem;
-        }
+        .dynamic-player-input:focus { outline: none; border-color: #3b82f6; }
+
+        /* Player Roster Styles */
+        .player-roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 1rem; }
         .player-card {
             background-color: #1f2937;
             border-radius: 0.5rem;
@@ -146,22 +135,9 @@
             cursor: pointer;
             border: 2px dashed #4b5563;
         }
-        .player-card-image-container:hover {
-            border-color: #3b82f6;
-        }
-        .player-card-image, .player-card-icon {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-         .player-card-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .player-card-image-container:hover { border-color: #3b82f6; }
+        .player-card-image, .player-card-icon { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        .player-card-icon { display: flex; align-items: center; justify-content: center; }
         .player-name-input {
             width: 100%;
             background: transparent;
@@ -173,30 +149,14 @@
             resize: none;
             font-size: 0.875rem;
         }
-        .player-name-input:focus {
-            outline: none;
-            background-color: #374151;
-        }
+        .player-name-input:focus { outline: none; background-color: #374151; }
         .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #22c55e;
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.5s, transform 0.5s;
-            visibility: hidden;
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #22c55e; color: white; padding: 1rem 2rem; border-radius: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; opacity: 0;
+            transition: opacity 0.5s, transform 0.5s; visibility: hidden;
         }
-        .toast.show {
-            opacity: 1;
-            transform: translate(-50%, -10px);
-            visibility: visible;
-        }
+        .toast.show { opacity: 1; transform: translate(-50%, -10px); visibility: visible; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -213,11 +173,10 @@
             </div>
         </header>
 
-        <section id="player-roster-section" class="card">
+        <section id="player-roster-section" class="card pdf-section">
             <h2 class="text-xl font-bold mb-4">Player Roster</h2>
             <p class="text-sm text-gray-400 mb-4">Click a player's square to add their photo. Type their name below. Data is saved in your browser's local storage.</p>
-            <div id="player-roster-grid" class="player-roster">
-                </div>
+            <div id="player-roster-grid" class="player-roster"></div>
         </section>
 
         <main id="observation-phases">
@@ -239,45 +198,13 @@
         appId = typeof __app_id !== 'undefined' ? __app_id : 'default-incognito-app';
 
         // --- PLAYER & OBSERVATION DATA ---
-        const playerCount = 31; // Set the number of players
+        const playerCount = 31;
 
         const observationPlan = [
-            {
-                phase: "The Ghost Phase (Days 1-2)",
-                icon: "fa-ghost",
-                parameters: [
-                    { id: "social-map", title: "The Social Map", question: "Identify Key Nodes:", type: "checkbox", options: ["The Social Hub(s)", "The Main Isolates(s)", "The Dominant Clique(s)"] },
-                    { id: "emotional-barometer", title: "The Emotional Barometer", question: "Whose mood dictates the room's energy?", type: "radio", options: ["The Loud/Joking Leader", "The Quiet/Intense Leader", "The Complainer/Negative Influence", "No single dominant barometer"] },
-                    { id: "informal-leadership", title: "Informal Leadership", question: "Who demonstrates ownership without being asked?", type: "checkbox", options: ["Initiates cleanup", "Answers a coach's question", "Reminds others of a time/task"] }
-                ]
-            },
-            {
-                phase: "The Humanization Phase (Days 3-4)",
-                icon: "fa-user-check",
-                parameters: [
-                    { id: "interaction-protocol", title: "Interaction Protocol", question: "Reaction to brief, polite interaction:", type: "radio", options: ["Positive/Neutral", "Indifferent", "Negative"] },
-                    { id: "linguistic-humor", title: "Linguistic Patterns (Humor)", question: "What is the dominant type of humor?", type: "radio", options: ["Inclusive & light-hearted", "Sarcastic & cynical", "Targeted (at players/staff)"] },
-                    { id: "linguistic-mistake", title: "Linguistic Patterns (Mistakes)", question: "Reaction to a mistake in training?", type: "radio", options: ["Accountability-focused", "Blame-focused", "Silent/Internalized"] }
-                ]
-            },
-            {
-                phase: "The Clincher Phase (Day 5: Match Day)",
-                icon: "fa-trophy",
-                parameters: [
-                    { id: "pre-match-state", title: "Pre-Match State", question: "Identify dominant pre-game emotional states:", type: "checkbox", options: ["Optimal Fighter(s)", "Pre-Start Fever(s)", "Pre-Start Apathy(s)"] },
-                    { id: "post-match-reaction", title: "Post-Match Reaction", question: "Observe the immediate reaction to the result:", type: "radio", options: ["Balanced", "Highly Emotional", "Destructive"] },
-                ]
-            },
-            {
-                phase: "Behavioural Profile",
-                icon: "fa-comments",
-                parameters: [
-                    { id: "comm-style", title: "Communication Style", question: "How do they usually talk?", type: "radio", options: ["Uses seeing words (e.g., 'I see what you mean')", "Uses hearing words (e.g., 'Sounds good to me')", "Uses feeling words (e.g., 'I can grasp that')", "Uses thinking words (e.g., 'It makes sense to me')"] },
-                    { id: "motivation-source", title: "Motivation Source", question: "What drives their actions?", type: "radio", options: ["Moving Toward a Goal (Focus on winning, gaining)", "Moving Away From Problems (Focus on avoiding loss)"] },
-                    { id: "convincer-strategy", title: "How They Are Convinced", question: "What does it take to convince them?", type: "radio", options: ["By Seeing It (Needs visual proof)", "By Hearing It (Needs to be told)", "By Doing It (Needs to try it themselves)", "By Reading It (Needs data or a report)"] },
-                    { id: "language-habits", title: "Common Language Habits", question: "What common speaking habits do you notice?", type: "checkbox", options: ["Using broad words like 'always' or 'never'", "Leaving out details (e.g., 'They don't get it')", "Making assumptions (e.g., 'He's mad because...')"] }
-                ]
-            }
+            { phase: "The Ghost Phase (Days 1-2)", icon: "fa-ghost", parameters: [{ id: "social-map", title: "The Social Map", question: "Identify Key Nodes:", type: "checkbox", options: ["The Social Hub(s)", "The Main Isolates(s)", "The Dominant Clique(s)"] }, { id: "emotional-barometer", title: "The Emotional Barometer", question: "Whose mood dictates the room's energy?", type: "radio", options: ["The Loud/Joking Leader", "The Quiet/Intense Leader", "The Complainer/Negative Influence", "No single dominant barometer"] }, { id: "informal-leadership", title: "Informal Leadership", question: "Who demonstrates ownership without being asked?", type: "checkbox", options: ["Initiates cleanup", "Answers a coach's question", "Reminds others of a time/task"] }] },
+            { phase: "The Humanization Phase (Days 3-4)", icon: "fa-user-check", parameters: [{ id: "interaction-protocol", title: "Interaction Protocol", question: "Reaction to brief, polite interaction:", type: "radio", options: ["Positive/Neutral", "Indifferent", "Negative"] }, { id: "linguistic-humor", title: "Linguistic Patterns (Humor)", question: "What is the dominant type of humor?", type: "radio", options: ["Inclusive & light-hearted", "Sarcastic & cynical", "Targeted (at players/staff)"] }, { id: "linguistic-mistake", title: "Linguistic Patterns (Mistakes)", question: "Reaction to a mistake in training?", type: "radio", options: ["Accountability-focused", "Blame-focused", "Silent/Internalized"] }] },
+            { phase: "The Clincher Phase (Day 5: Match Day)", icon: "fa-trophy", parameters: [{ id: "pre-match-state", title: "Pre-Match State", question: "Identify dominant pre-game emotional states:", type: "checkbox", options: ["Optimal Fighter(s)", "Pre-Start Fever(s)", "Pre-Start Apathy(s)"] }, { id: "post-match-reaction", title: "Post-Match Reaction", question: "Observe the immediate reaction to the result:", type: "radio", options: ["Balanced", "Highly Emotional", "Destructive"] },] },
+            { phase: "Behavioural Profile", icon: "fa-comments", parameters: [{ id: "comm-style", title: "Communication Style", question: "How do they usually talk?", type: "radio", options: ["Uses seeing words (e.g., 'I see what you mean')", "Uses hearing words (e.g., 'Sounds good to me')", "Uses feeling words (e.g., 'I can grasp that')", "Uses thinking words (e.g., 'It makes sense to me')"] }, { id: "motivation-source", title: "Motivation Source", question: "What drives their actions?", type: "radio", options: ["Moving Toward a Goal (Focus on winning, gaining)", "Moving Away From Problems (Focus on avoiding loss)"] }, { id: "convincer-strategy", title: "How They Are Convinced", question: "What does it take to convince them?", type: "radio", options: ["By Seeing It (Needs visual proof)", "By Hearing It (Needs to be told)", "By Doing It (Needs to try it themselves)", "By Reading It (Needs data or a report)"] }, { id: "language-habits", title: "Common Language Habits", question: "What common speaking habits do you notice?", type: "checkbox", options: ["Using broad words like 'always' or 'never'", "Leaving out details (e.g., 'They don't get it')", "Making assumptions (e.g., 'He's mad because...')"] }] }
         ];
 
         // --- UI RENDERING ---
@@ -286,18 +213,7 @@
             const grid = document.getElementById('player-roster-grid');
             let rosterHtml = '';
             for(let i = 0; i < playerCount; i++) {
-                rosterHtml += `
-                    <div class="player-card">
-                        <div class="player-card-image-container" data-player-index="${i}">
-                            <img id="player-img-${i}" class="player-card-image" src="" alt="Player photo" style="display: none;">
-                            <div id="player-icon-${i}" class="player-card-icon">
-                                <i class="fas fa-camera text-2xl text-gray-500"></i>
-                            </div>
-                        </div>
-                        <textarea id="player-name-${i}" class="player-name-input" rows="2" placeholder="Enter Name..." data-player-index="${i}"></textarea>
-                        <input type="file" id="player-input-${i}" class="hidden" accept="image/*" data-player-index="${i}">
-                    </div>
-                `;
+                rosterHtml += `<div class="player-card"><div class="player-card-image-container" data-player-index="${i}"><img id="player-img-${i}" class="player-card-image" src="" alt="Player photo" style="display: none;"><div id="player-icon-${i}" class="player-card-icon"><i class="fas fa-camera text-2xl text-gray-500"></i></div></div><textarea id="player-name-${i}" class="player-name-input" rows="2" placeholder="Enter Name..." data-player-index="${i}"></textarea><input type="file" id="player-input-${i}" class="hidden" accept="image/*" data-player-index="${i}"></div>`;
             }
             grid.innerHTML = rosterHtml;
             loadRosterFromStorage();
@@ -305,73 +221,32 @@
 
         function renderObservationPhases() {
             const container = document.getElementById('observation-phases');
-            container.innerHTML = observationPlan.map(phaseData => `
-                <div class="mb-4">
-                    <div class="accordion-header">
-                        <h2 class="text-xl font-semibold flex items-center"><i class="fas ${phaseData.icon} mr-3 w-6 text-center text-blue-400"></i>${phaseData.phase}</h2>
-                        <i class="fas fa-chevron-down accordion-icon"></i>
-                    </div>
-                    <div class="accordion-content">${phaseData.parameters.map(param => renderParameterCard(param)).join('')}</div>
-                </div>
-            `).join('');
+            container.innerHTML = observationPlan.map(phaseData => `<div class="mb-4 pdf-section" data-phase-title="${phaseData.phase}"><div class="accordion-header"><h2 class="text-xl font-semibold flex items-center"><i class="fas ${phaseData.icon} mr-3 w-6 text-center text-blue-400"></i>${phaseData.phase}</h2><i class="fas fa-chevron-down accordion-icon"></i></div><div class="accordion-content">${phaseData.parameters.map(param => renderParameterCard(param)).join('')}</div></div>`).join('');
         }
 
         function renderParameterCard(param) {
-            const formId = `form-${param.id}`;
-            return `
-                <div class="card" id="card-${param.id}">
-                    <form id="${formId}" data-parameter="${param.title}">
-                        <h3 class="text-lg font-bold text-gray-200 mb-4">${param.title}</h3>
-                        <p class="text-gray-400 mb-4">${param.question}</p>
-                        <div class="space-y-3 mb-6">
-                            ${param.options.map(opt => `
-                                <div class="option-container">
-                                    <label class="option-label">
-                                        <input type="${param.type}" name="selection" value="${opt}" class="mr-3 h-5 w-5 ${param.type === 'radio' ? 'rounded-full' : 'rounded'} text-blue-500 bg-gray-800 border-gray-600 focus:ring-blue-600">
-                                        <span>${opt}</span>
-                                    </label>
-                                    <input type="text" class="player-tag-input" placeholder="Tag Players...">
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div class="mb-6">
-                            <label for="comment-${param.id}" class="block font-semibold mb-2">Analyst Comments</label>
-                            <textarea id="comment-${param.id}" name="comment" rows="3" class="input-field" placeholder="Add general comments..."></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-full"><i class="fas fa-save mr-2"></i>Save Observation</button>
-                    </form>
-                    <div id="log-${param.id}" class="mt-6"></div>
-                </div>
-            `;
+            return `<div class="card" id="card-${param.id}"><form id="form-${param.id}" data-parameter="${param.title}"><h3 class="text-lg font-bold text-gray-200 mb-4">${param.title}</h3><p class="text-gray-400 mb-4">${param.question}</p><div class="space-y-3 mb-6">${param.options.map(opt => `<div class="option-block"><label class="option-label"><input type="${param.type}" name="selection" value="${opt}" class="mr-3 h-5 w-5 ${param.type === 'radio' ? 'rounded-full' : 'rounded'} text-blue-500 bg-gray-800 border-gray-600 focus:ring-blue-600"><span>${opt}</span></label><div class="player-tagging-area"><button type="button" class="btn btn-add add-player-btn"><i class="fas fa-plus mr-2 text-xs"></i>Tag Player</button></div></div>`).join('')}</div><div class="mb-6"><label for="comment-${param.id}" class="block font-semibold mb-2">Analyst Comments</label><textarea id="comment-${param.id}" name="comment" rows="3" class="input-field" placeholder="Add general comments..."></textarea></div><button type="submit" class="btn btn-primary w-full"><i class="fas fa-save mr-2"></i>Save Observation</button></form><div id="log-${param.id}" class="mt-6"></div></div>`;
         }
         
         function renderSavedObservation(obs) {
             const logContainer = document.getElementById(`log-${obs.parameterId}`);
             if (!logContainer || document.getElementById(`obs-${obs.id}`)) return;
-            
             const obsElement = document.createElement('div');
             obsElement.id = `obs-${obs.id}`;
             obsElement.className = 'p-3 bg-gray-800 rounded-lg mb-2 border-l-4 border-blue-500 text-sm';
-            
             const timestamp = obs.timestamp?.toDate ? obs.timestamp.toDate().toLocaleString() : 'Just now';
             const selectionsHtml = obs.selections.map(sel => {
-                const playersHtml = sel.players ? ` <span class="font-normal text-blue-300">- [${sel.players}]</span>` : '';
+                const playersHtml = sel.players.length > 0 ? ` <span class="font-normal text-blue-300">- [${sel.players.join(', ')}]</span>` : '';
                 return `<li><span class="font-semibold">${sel.value}</span>${playersHtml}</li>`;
             }).join('');
-
-            obsElement.innerHTML = `
-                <ul class="list-disc list-inside mb-2">${selectionsHtml}</ul>
-                ${obs.comment ? `<p class="font-semibold text-gray-300 mt-2">Comment: <span class="font-normal italic">"${obs.comment}"</span></p>` : ''}
-                <p class="text-xs text-gray-500 text-right mt-2">${timestamp}</p>
-            `;
+            obsElement.innerHTML = `<ul class="list-disc list-inside mb-2">${selectionsHtml}</ul>${obs.comment ? `<p class="font-semibold text-gray-300 mt-2">Comment: <span class="font-normal italic">"${obs.comment}"</span></p>` : ''}<p class="text-xs text-gray-500 text-right mt-2">${timestamp}</p>`;
             logContainer.prepend(obsElement);
         }
 
         // --- EVENT HANDLERS & LOGIC ---
 
-        function toggleAccordion(headerElement) {
-            headerElement.parentElement.classList.toggle('open');
-        }
+        function toggleAccordion(headerElement) { headerElement.parentElement.classList.toggle('open'); }
+        function showToast() { const toast = document.getElementById('toast-notification'); toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
 
         function handleImageUpload(event) {
             const input = event.target;
@@ -379,122 +254,85 @@
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const imgElement = document.getElementById(`player-img-${index}`);
-                    const icon = document.getElementById(`player-icon-${index}`);
-                    imgElement.src = e.target.result;
-                    imgElement.style.display = 'block';
-                    icon.style.display = 'none';
+                    document.getElementById(`player-img-${index}`).src = e.target.result;
+                    document.getElementById(`player-img-${index}`).style.display = 'block';
+                    document.getElementById(`player-icon-${index}`).style.display = 'none';
                     localStorage.setItem(`player_image_${index}`, e.target.result);
                 }
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        function handleNameInput(event) {
-            const textarea = event.target;
-            const index = textarea.dataset.playerIndex;
-            localStorage.setItem(`player_name_${index}`, textarea.value);
-        }
+        function handleNameInput(event) { localStorage.setItem(`player_name_${event.target.dataset.playerIndex}`, event.target.value); }
 
         function loadRosterFromStorage() {
             for(let i = 0; i < playerCount; i++) {
-                // Load Images
                 const imageDataUrl = localStorage.getItem(`player_image_${i}`);
                 if (imageDataUrl) {
-                    const imgElement = document.getElementById(`player-img-${i}`);
-                    const icon = document.getElementById(`player-icon-${i}`);
-                    imgElement.src = imageDataUrl;
-                    imgElement.style.display = 'block';
-                    icon.style.display = 'none';
+                    document.getElementById(`player-img-${i}`).src = imageDataUrl;
+                    document.getElementById(`player-img-${i}`).style.display = 'block';
+                    document.getElementById(`player-icon-${i}`).style.display = 'none';
                 }
-                // Load Names
                 const name = localStorage.getItem(`player_name_${i}`);
-                if (name) {
-                    document.getElementById(`player-name-${i}`).value = name;
-                }
+                if (name) { document.getElementById(`player-name-${i}`).value = name; }
             }
         }
-
+        
         async function handleSaveAsPdf() {
             const { jsPDF } = window.jspdf;
-            const content = document.getElementById('content-to-pdf');
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
             const pdfButton = document.getElementById('save-pdf-btn');
             pdfButton.textContent = 'Generating...';
 
-            try {
-                const canvas = await html2canvas(content, { 
-                    scale: 2, 
-                    backgroundColor: '#111827',
-                    useCORS: true 
-                });
+            const sections = document.querySelectorAll('.pdf-section');
+            for (let i = 0; i < sections.length; i++) {
+                const section = sections[i];
+                if (i > 0) pdf.addPage('landscape');
+                
+                const title = section.dataset.phaseTitle || "Player Roster";
+                pdf.setFontSize(22);
+                pdf.text(title, 40, 50);
+
+                const canvas = await html2canvas(section, { scale: 1.5, backgroundColor: '#1f2937', useCORS: true });
                 const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'pt',
-                    format: 'a4'
-                });
                 
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
-                const canvasWidth = canvas.width;
-                const canvasHeight = canvas.height;
-                const ratio = canvasWidth / canvasHeight;
-                const widthInPdf = pdfWidth;
-                const heightInPdf = widthInPdf / ratio;
-                let heightLeft = heightInPdf;
-                let position = 0;
+                const pdfWidth = pdf.internal.pageSize.getWidth() - 80; // margins
+                const pdfHeight = pdf.internal.pageSize.getHeight() - 100; // margins
+                const imgProps = pdf.getImageProperties(imgData);
+                const imgRatio = imgProps.width / imgProps.height;
+                let imgWidth = pdfWidth;
+                let imgHeight = imgWidth / imgRatio;
 
-                pdf.addImage(imgData, 'PNG', 0, position, widthInPdf, heightInPdf);
-                heightLeft -= pdfHeight;
-
-                while (heightLeft >= 0) {
-                    position = heightLeft - heightInPdf;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 0, position, widthInPdf, heightInPdf);
-                    heightLeft -= pdfHeight;
+                if (imgHeight > pdfHeight) {
+                    imgHeight = pdfHeight;
+                    imgWidth = imgHeight * imgRatio;
                 }
-                
-                pdf.save('incognito_observation_log.pdf');
-            } catch(e) {
-                console.error("Error generating PDF:", e);
-                alert("Could not generate PDF. See console for details.");
-            } finally {
-                pdfButton.innerHTML = '<i class="fas fa-file-pdf mr-2"></i>Save as PDF';
-            }
-        }
 
-        function showToast() {
-            const toast = document.getElementById('toast-notification');
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+                pdf.addImage(imgData, 'PNG', 40, 70, imgWidth, imgHeight);
+            }
+
+            pdf.save('incognito_observation_log.pdf');
+            pdfButton.innerHTML = '<i class="fas fa-file-pdf mr-2"></i>Save as PDF';
         }
 
         async function handleFormSubmit(event) {
             event.preventDefault();
-            if (!userId) {
-                alert("Error: Not connected. Please wait and try again.");
-                return;
-            }
-
+            if (!userId) { alert("Error: Not connected."); return; }
             const form = event.target;
-            const card = form.closest('.card');
-            const phase = card.closest('.mb-4').querySelector('.accordion-header h2').innerText;
             const checkedInputs = form.querySelectorAll('input[name="selection"]:checked');
-            
-            if (checkedInputs.length === 0) {
-                alert("Please make at least one selection.");
-                return;
-            }
+            if (checkedInputs.length === 0) { alert("Please make at least one selection."); return; }
             
             const observationData = {
                 userId,
-                phase: phase,
+                phase: form.closest('.pdf-section').dataset.phaseTitle,
                 parameter: form.dataset.parameter,
                 parameterId: form.id.replace('form-', ''),
-                selections: Array.from(checkedInputs).map(input => ({
-                    value: input.value,
-                    players: input.closest('.option-container').querySelector('.player-tag-input').value.trim()
-                })),
+                selections: Array.from(checkedInputs).map(input => {
+                    const tagArea = input.closest('.option-block').querySelector('.player-tagging-area');
+                    const playerInputs = tagArea.querySelectorAll('.dynamic-player-input');
+                    const players = Array.from(playerInputs).map(pIn => pIn.value.trim()).filter(Boolean);
+                    return { value: input.value, players: players };
+                }),
                 comment: form.querySelector(`textarea[name="comment"]`).value.trim(),
                 timestamp: new Date()
             };
@@ -503,10 +341,8 @@
                 await addDoc(collection(db, `artifacts/${appId}/users/${userId}/observations`), observationData);
                 showToast();
                 form.reset();
-            } catch (error) {
-                console.error("Error saving observation: ", error);
-                alert("Failed to save observation. See console for details.");
-            }
+                form.querySelectorAll('.player-input-group').forEach(el => el.remove());
+            } catch (error) { console.error("Error saving observation: ", error); alert("Failed to save observation."); }
         }
 
         // --- FIREBASE INITIALIZATION & AUTH ---
@@ -530,10 +366,7 @@
                     }
                 });
                 await (typeof __initial_auth_token !== 'undefined' ? signInWithCustomToken(auth, __initial_auth_token) : signInAnonymously(auth));
-            } catch (error) {
-                console.error("Firebase initialization failed:", error);
-                document.getElementById('auth-status').textContent = "Connection failed.";
-            }
+            } catch (error) { console.error("Firebase initialization failed:", error); document.getElementById('auth-status').textContent = "Connection failed."; }
         }
 
         function listenForObservations() {
@@ -541,9 +374,7 @@
             const q = query(collection(db, `artifacts/${appId}/users/${userId}/observations`));
             onSnapshot(q, querySnapshot => {
                 querySnapshot.docChanges().forEach(change => {
-                    if (change.type === "added") {
-                        renderSavedObservation({ id: change.doc.id, ...change.doc.data() });
-                    }
+                    if (change.type === "added") renderSavedObservation({ id: change.doc.id, ...change.doc.data() });
                 });
             }, error => console.error("Error listening to observations: ", error));
         }
@@ -557,34 +388,30 @@
 
             const mainContainer = document.querySelector('.main-container');
             mainContainer.addEventListener('click', (e) => {
-                if (e.target.closest('.accordion-header')) {
-                    toggleAccordion(e.target.closest('.accordion-header'));
+                if (e.target.closest('.accordion-header')) toggleAccordion(e.target.closest('.accordion-header'));
+                if (e.target.closest('.player-card-image-container')) document.getElementById(`player-input-${e.target.closest('[data-player-index]').dataset.playerIndex}`).click();
+                if (e.target.closest('#save-pdf-btn')) handleSaveAsPdf();
+                if (e.target.closest('.add-player-btn')) {
+                    const container = e.target.closest('.player-tagging-area');
+                    const playerNames = Array.from(document.querySelectorAll('.player-name-input')).map(input => input.value.trim()).filter(Boolean);
+                    const datalistId = `datalist-${Date.now()}`;
+                    
+                    const newField = document.createElement('div');
+                    newField.className = 'player-input-group';
+                    
+                    let datalistHtml = `<datalist id="${datalistId}">`;
+                    playerNames.forEach(name => { datalistHtml += `<option value="${name}"></option>`; });
+                    datalistHtml += `</datalist>`;
+                    
+                    newField.innerHTML = `<input type="text" list="${datalistId}" class="dynamic-player-input" placeholder="Select or type player...">${datalistHtml}<button type="button" class="btn-remove"><i class="fas fa-times-circle"></i></button>`;
+                    container.insertBefore(newField, e.target);
                 }
-                if (e.target.closest('.player-card-image-container')) {
-                    const index = e.target.closest('.player-card-image-container').dataset.playerIndex;
-                    document.getElementById(`player-input-${index}`).click();
-                }
-                if (e.target.closest('#save-pdf-btn')) {
-                    handleSaveAsPdf();
-                }
+                if (e.target.closest('.btn-remove')) { e.target.closest('.player-input-group').remove(); }
             });
-            mainContainer.addEventListener('change', (e) => {
-                if (e.target.matches('input[type="file"]')) {
-                    handleImageUpload(e);
-                }
-            });
-             mainContainer.addEventListener('input', (e) => {
-                if (e.target.matches('.player-name-input')) {
-                    handleNameInput(e);
-                }
-            });
-            mainContainer.addEventListener('submit', (e) => {
-                if(e.target.tagName === 'FORM') {
-                    handleFormSubmit(e);
-                }
-            });
+            mainContainer.addEventListener('change', (e) => { if (e.target.matches('input[type="file"]')) handleImageUpload(e); });
+            mainContainer.addEventListener('input', (e) => { if (e.target.matches('.player-name-input')) handleNameInput(e); });
+            mainContainer.addEventListener('submit', (e) => { if (e.target.tagName === 'FORM') handleFormSubmit(e); });
         });
-
     </script>
 </body>
 </html>
